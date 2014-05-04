@@ -11,7 +11,34 @@
 	</parent>
     <artifactId>vertx-tests</artifactId>
 
+	<build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.xtend</groupId>
+                <artifactId>xtend-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+		</plugins>
+	</build>
+
     <dependencies>
+        <dependency>
+            <groupId>de.jpaw</groupId>
+            <artifactId>vertx-generator</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>de.jpaw</groupId>
             <artifactId>vertx-lib</artifactId>

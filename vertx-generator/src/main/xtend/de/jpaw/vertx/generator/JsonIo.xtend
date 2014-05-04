@@ -15,24 +15,37 @@ annotation JsonIo {}
 class JsonIoProcessor extends AbstractClassProcessor {
 
     override doTransform(MutableClassDeclaration cls, extension TransformationContext context) {
-    	val jsonizable = Jsonizable.newTypeReference
-    	
+		val overrideAnnotation = Override.newTypeReference.type
+		    	
     	// erase the annotation in order to avoid a hard runtime dependency on the generator project, and therefore xtend lib / guava
         cls.annotations.findFirst[annotationTypeDeclaration == JsonIo.newTypeReference.type].remove
 
 		// add the Jsonizable interface
-		cls.implementedInterfaces = cls.implementedInterfaces + #[ jsonizable ]
+		cls.implementedInterfaces = cls.implementedInterfaces + #[ Jsonizable.newTypeReference ]
 
-		// for each of the declared fields, create the serializer call
+		// create a method, which, for each of the declared fields, performs the serializer call
         cls.addMethod("serializeSub") [
         	visibility = Visibility.PUBLIC
         	returnType = primitiveVoid
-        	addParameter("_w", MessageComposer.newTypeReference.newWildcardTypeReferenceWithLowerBound(Exception.newTypeReference))
-        	docComment = [ '''Created by JsonIoProcessor''']
+        	addAnnotation(overrideAnnotation)
+        	addParameter("writer", MessageComposer.newTypeReference(newWildcardTypeReferenceWithLowerBound(Exception.newTypeReference)))
+        	docComment = '''Created by JsonIoProcessor'''
+        	body = [ '''
+        		«IF cls.extendedClass != null && cls.extendedClass != Object.newTypeReference»
+        			super.serializeSub(writer);
+        			writer.writeSuperclassSeparator();
+        		«ENDIF»
+        		«FOR fld: cls.declaredFields»
+        			writer.addField("«fld.simpleName»", this.«fld.simpleName»);
+        		«ENDFOR»
+        	''']
         ]
+        // just sugar, it forwards to a static method in the class MessageComposerJson
         cls.addMethod("encodeJson") [
         	visibility = Visibility.PUBLIC
         	returnType = String.newTypeReference
+        	addAnnotation(overrideAnnotation)
+        	docComment = '''Created by JsonIoProcessor'''
         	body = [ '''return «toJavaCode(MessageComposerJson.newTypeReference)».encode(this);''']
         ]
     }
