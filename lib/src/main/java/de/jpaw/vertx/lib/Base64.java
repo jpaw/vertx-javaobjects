@@ -76,6 +76,10 @@ import java.util.Arrays;
  * encoder modified to work with ByteBuilder
  */
 
+
+// TODO:  Java 8 now has a Base64 class as well now. Compare the speed and in case of only neglectable difference, use
+// the Java internal one.
+
 public final class Base64 {
     private static final char[] CA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
     private static final int[] IA = new int[256];

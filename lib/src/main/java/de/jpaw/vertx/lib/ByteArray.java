@@ -32,6 +32,7 @@ import java.io.ObjectOutput;
  *
  */
 
+// TODO: check if there is some immutable byte [] class offered by standard Java.
 
 public final class ByteArray implements Externalizable, Cloneable {
     private static final long serialVersionUID = 2782729564297256974L;

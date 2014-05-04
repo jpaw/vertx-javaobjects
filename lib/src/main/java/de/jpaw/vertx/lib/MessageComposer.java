@@ -1,5 +1,5 @@
  /*
-  * Copyright 2012 Michael Bischoff
+  * Copyright 2014 Michael Bischoff
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
@@ -38,8 +38,9 @@ public interface MessageComposer<E extends Exception> {
     public void writeNullCollection(String fieldname) throws E;   	// the whole collection is null
     public void writeSuperclassSeparator() throws E;				// written between fields of a superclass and fields of the current class, also at end of the last class
     public void terminateObject() throws E;							// written at end of an object
-//    public void terminateMap() throws E;
-    public void terminateList() throws E;			// end of a list
+    public void terminateList() throws E;							// end of a list
+    public void terminateMessage() throws E;						// can be used to create a record terminator (CRLF here)
+//  public void terminateMap() throws E;							// TODO
 
     // serialization methods: field type specific
 
@@ -53,12 +54,14 @@ public interface MessageComposer<E extends Exception> {
     void addField(String fieldname, int n) throws E;
     void addField(String fieldname, long n) throws E;
 
-    void addField(String fieldname, List<?> s) throws E;
+    // natively supported classes
+    void addField(String fieldname, Enum<?> e) throws E;			// enums are transferred using their name
+    void addField(String fieldname, List<?> s) throws E;			// mutable, but immutable derivates exist (guava ImmutableList)
     void addField(String fieldname, String s) throws E;
-    void addField(String fieldname, AlternativeSerializable obj) throws E;
+    void addField(String fieldname, Jsonizable obj) throws E;
     void addField(String fieldname, UUID n) throws E;
     void addField(String fieldname, ByteArray b) throws E;
-//    void addField(String fieldname, byte [] b) throws E;	// inherently mutable. Use ByteArray instead!
+//    void addField(String fieldname, byte [] b) throws E;			// inherently mutable. Use ByteArray instead!
     void addField(String fieldname, BigInteger n) throws E;
     void addField(String fieldname, BigDecimal n) throws E;
     void addField(String fieldname, LocalDate t) throws E;
