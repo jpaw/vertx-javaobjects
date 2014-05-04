@@ -29,6 +29,21 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 		this.out = out;
 		this.writeNulls = writeNulls;
 	}
+	
+	
+	/** shorthand method. Creates its own serializer and a StringBuilder as buffer and runs the serializer on the passed object. */
+	public static String encode(Jsonizable obj) {
+		StringBuilder buffer = new StringBuilder(500);
+		MessageComposerJson writer = new MessageComposerJson(buffer);
+		try {
+			writer.addField(null, obj);
+			writer.terminateMessage();
+		} catch (IOException e) {
+			// cannot happen on a StringBuilder, or...?
+			throw new RuntimeException("IOException writing to StringBuilder!?", e);
+		}
+		return buffer.toString();
+	}
 
 	/** Checks if a field separator (',') must be written, and does so if required. Sets the separator to required for the next field. */
 	protected void writeSeparator() throws IOException {
@@ -221,6 +236,7 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 		out.append(':');
 		writeStringUnescaped(obj.getClass().getCanonicalName());
 		needFieldSeparator = true;
+		obj.serializeSub(this);
 	}
 	@Override
 	public void addField(String fieldname, Jsonizable obj) throws IOException {
