@@ -27,8 +27,10 @@ class JsonIoProcessor extends AbstractClassProcessor {
         cls.addMethod("serializeSub") [
         	visibility = Visibility.PUBLIC
         	returnType = primitiveVoid
+        	val exceptionParam = addTypeParameter("E", Exception.newTypeReference)
         	addAnnotation(overrideAnnotation)
-        	addParameter("writer", MessageComposer.newTypeReference(newWildcardTypeReferenceWithLowerBound(Exception.newTypeReference)))
+        	addParameter("writer", MessageComposer.newTypeReference(exceptionParam.newTypeReference))
+        	exceptions = #[ exceptionParam.newTypeReference ]
         	docComment = '''Created by JsonIoProcessor
         	method signature should be
         	public <E extends Exception> void serializeSub(final MessageComposer<E> writer) throws E {
