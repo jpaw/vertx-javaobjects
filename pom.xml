@@ -3,18 +3,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.jpaw</groupId>
-    <artifactId>xtend-sions</artifactId>
+    <artifactId>vertx-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-
-    <name>eXtension for the IterableExtensions of the xtend library, also starting a collection of some active annotations</name>
-    <url>http://www.jpaw.de/projects/bonaparte/index.html</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <xtend.version>2.5.4</xtend.version>
         <slf4j.version>1.7.7</slf4j.version>            <!-- http://www.slf4j.org/ -->
         <logback.version>1.1.2</logback.version>        <!-- http://logback.qos.ch/ -->
-        <jodatime.version>2.3</jodatime.version>
+        <testng.version>5.12.1</testng.version>
     </properties>
 
     <licenses>
@@ -106,11 +103,12 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.1</version>
                     <configuration>
-                        <source>1.6</source>
-                        <target>1.6</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
                 </plugin>
+
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
@@ -144,6 +142,7 @@
                         </execution>
                     </executions>
                 </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
@@ -152,6 +151,7 @@
                         <charset>UTF-8</charset>
                     </configuration>
                 </plugin>
+
                 <plugin>
                     <!-- must delete generated sources as well -->
                     <groupId>org.apache.maven.plugins</groupId>
@@ -180,33 +180,7 @@
                         </filesets>
                     </configuration>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>1.3.1</version>
-                    <executions>
-                        <execution>
-                            <id>enforce-no-snapshots</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>enforce</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <rules>
-                            <requireReleaseDeps>
-                                <message>No snapshots dependencies
-                                    allowed on the master branch!</message>
-                                <searchTransitive>true</searchTransitive>
-                                <failWhenParentIsSnapshot>true</failWhenParentIsSnapshot>
-                                <onlyWhenRelease>true</onlyWhenRelease>
-                            </requireReleaseDeps>
-                        </rules>
-                        <fail>true</fail>
-                        <failFast>true</failFast>
-                    </configuration>
-                </plugin>
+
                 <plugin>
                     <artifactId>maven-source-plugin</artifactId>
                     <version>2.2.1</version>
@@ -238,83 +212,9 @@
                     </executions>
                 </plugin>
             </plugins>
-
         </pluginManagement>
 
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.xtend</groupId>
-                <artifactId>xtend-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- bonaparte core should be compiled for a 1.6 target 
-                        in order to allow Android compatibility -->
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>${jodatime.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>5.12.1</version>   <!-- 5.14.9 or 6.7 use waaay more dependencies -->
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.xtend</groupId>
-            <artifactId>org.eclipse.xtend.lib</artifactId>
-            <version>${xtend.version}</version>
-        </dependency>
-        <!-- 
-        <dependency>
-            <groupId>org.eclipse.xtext</groupId>
-            <artifactId>org.eclipse.xtext.standalone</artifactId>
-            <version>${xtend.version}</version>
-        </dependency>
-         -->
-    </dependencies>
 
     <reporting>
         <plugins>
@@ -328,5 +228,11 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <modules>
+        <module>vertx-lib/pom.xml</module>
+        <module>vertx-generator/pom.xml</module>
+        <module>vertx-tests/pom.xml</module>
+    </modules>
 
 </project>
