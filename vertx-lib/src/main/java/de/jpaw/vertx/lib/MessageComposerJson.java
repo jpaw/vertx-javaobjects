@@ -237,6 +237,7 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 		writeStringUnescaped(obj.getClass().getCanonicalName());
 		needFieldSeparator = true;
 		obj.serializeSub(this);
+		terminateObject();
 	}
 	@Override
 	public void addField(String fieldname, Jsonizable obj) throws IOException {

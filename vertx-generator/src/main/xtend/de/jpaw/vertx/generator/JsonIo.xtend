@@ -29,7 +29,10 @@ class JsonIoProcessor extends AbstractClassProcessor {
         	returnType = primitiveVoid
         	addAnnotation(overrideAnnotation)
         	addParameter("writer", MessageComposer.newTypeReference(newWildcardTypeReferenceWithLowerBound(Exception.newTypeReference)))
-        	docComment = '''Created by JsonIoProcessor'''
+        	docComment = '''Created by JsonIoProcessor
+        	method signature should be
+        	public <E extends Exception> void serializeSub(final MessageComposer<E> writer) throws E {
+        	'''
         	body = [ '''
         		«IF cls.extendedClass != null && cls.extendedClass != Object.newTypeReference»
         			super.serializeSub(writer);
@@ -48,6 +51,21 @@ class JsonIoProcessor extends AbstractClassProcessor {
         	docComment = '''Created by JsonIoProcessor'''
         	body = [ '''return «toJavaCode(MessageComposerJson.newTypeReference)».encode(this);''']
         ]
+        for (fld: cls.declaredFields) {
+        	// create a setter
+        	cls.addMethod("set" + fld.simpleName.toFirstUpper) [
+	        	visibility = Visibility.PUBLIC
+    	    	returnType = primitiveVoid
+				addParameter(fld.simpleName, fld.type)
+				body = [ '''this.«fld.simpleName» = «fld.simpleName»;''' ]        		
+        	]
+        	// create a getter
+        	cls.addMethod("get" + fld.simpleName.toFirstUpper) [
+	        	visibility = Visibility.PUBLIC
+    	    	returnType = fld.type
+				body = [ '''return «fld.simpleName»;''' ]        		
+        	]
+        }
     }
 }
 
