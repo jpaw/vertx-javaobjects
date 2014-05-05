@@ -205,9 +205,19 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 	}
 
 	@Override
-	public void addField(String fieldname, List<?> s) throws IOException {
-		// TODO Auto-generated method stub
-		
+	public void addField(String fieldname, List<?> l) throws IOException {
+		if (l == null) {
+			writeNullCollection(fieldname);
+		} else {
+			if (fieldname == null) {
+				// must write a null without a name
+				writeSeparator();
+			} else {
+				writeFieldName(fieldname);
+			}
+			out.append('[');
+			needFieldSeparator = false;
+		}
 	}
 
 	@Override
