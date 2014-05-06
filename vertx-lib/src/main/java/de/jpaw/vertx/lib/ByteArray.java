@@ -19,6 +19,8 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.nio.ByteBuffer;
+import java.util.Base64;
 
 
 /**
@@ -80,6 +82,26 @@ public final class ByteArray implements Externalizable, Cloneable {
         }
     }
 
+    // construct a ByteArray from a trusted source ByteArray. set trusted to true to avoid copying data, but have to ensure that the backing buffer
+    // is not known to anyone else. Therefore this constructor is private
+    private ByteArray(ByteBuffer source, boolean unsafeTrustedReuseOfJavaByteBuffer) {
+    	final int len = source.limit() - source.position();
+        if (source == null || len == 0) {
+            buffer = ZERO_JAVA_BYTE_ARRAY;
+            offset = 0;
+            length = 0;
+        } else if (unsafeTrustedReuseOfJavaByteBuffer) {
+       		buffer = source.array();
+            offset = source.position();
+            length = source.limit();
+      	} else {
+       		buffer = new byte[len];
+       		source.get(buffer, 0, len);
+            offset = 0;
+            length = len;
+        }
+    }
+
     // construct a ByteArray from a source byte [], with offset and length. source may not be null
     public ByteArray(byte [] source, int offset, int length) {
         if (source == null || offset < 0 || length < 0 || offset + length > source.length)
@@ -90,7 +112,7 @@ public final class ByteArray implements Externalizable, Cloneable {
         this.length = length;
     }
 
-    // construct a ByteArray from another one
+    // construct a ByteArray from another one. Makes no sense as the object is immutable and instead the reference should be just assigned
     // TODO: change it to private? external callers should use plain assignment or clone() instead!
     public ByteArray(ByteArray source) {
         if (source == null) {
@@ -314,19 +336,40 @@ public final class ByteArray implements Externalizable, Cloneable {
         return extraFieldJustRequiredForDeserialization;
     }
 
-    // factory method to construct a byte array from a prevalidated base64 byte sequence. returns null if length is suspicious
+    /** Factory method to construct a byte array from a prevalidated base64 byte sequence. returns null if length is suspicious. */
     static public ByteArray fromBase64(byte [] data, int offset, int length) {
         if (length == 0)
             return ZERO_BYTE_ARRAY;
-        byte [] tmp = Base64.decode(data, offset, length);
-        if (tmp == null)
-            return null;
-        return new ByteArray(tmp, true);
+        if (data == null)
+        	return null;
+        if (offset == 0 && length == data.length) {
+        	// no need to extract the bytes and go via Buffer
+        	byte [] tmp = Base64.getDecoder().decode(data);
+            return new ByteArray(tmp, true);
+        } else {
+        	// have to use ByteBuffer to avoid copying the byte array
+        	ByteBuffer buff = ByteBuffer.wrap(data, 0, length);
+        	ByteBuffer decoded = Base64.getDecoder().decode(buff);
+            return new ByteArray(decoded, true);
+        }
     }
 
-    public void appendBase64(ByteBuilder b) {
-        Base64.encodeToByte(b, buffer, offset, length);
+    public ByteBuffer getBase64asBuffer() {
+    	return Base64.getEncoder().encode(ByteBuffer.wrap(buffer, offset, length));
     }
+    public byte[] getBase64asByte() {
+    	if (offset == 0 && length == buffer.length)
+    		return Base64.getEncoder().encode(buffer);
+    	ByteBuffer tmp = getBase64asBuffer();
+    	int len = tmp.limit() - tmp.position();
+   		byte [] tmp2 = new byte[len];
+   		tmp.get(tmp2, 0, len);
+   		return tmp2;
+    }
+    // TODO: convert to java 8
+//    public void appendBase64(ByteBuilder b) {
+////        Base64.encodeToByte(b, buffer, offset, length);
+//    }
 
     // returns the String representation of the visible bytes portion
     @Override

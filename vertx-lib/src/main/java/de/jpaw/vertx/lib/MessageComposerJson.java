@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -275,8 +276,14 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 
 	@Override
 	public void addField(String fieldname, ByteArray b) throws IOException {
-		// TODO Auto-generated method stub
-		
+		writeOptionalQuotedString(fieldname, b == null ? null : new String(b.getBase64asByte()));
+	}
+
+	@Override
+	@Deprecated
+	public void addField(String fieldname, byte [] b) throws IOException {
+		// TODO: encode() is much faster than encodeToString(). We should switch to that, especially as we need byte [] in the end anyway.
+		writeOptionalQuotedString(fieldname, b == null ? null : Base64.getEncoder().encodeToString(b));
 	}
 
 	@Override

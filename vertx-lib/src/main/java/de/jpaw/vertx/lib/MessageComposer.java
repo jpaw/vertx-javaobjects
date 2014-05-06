@@ -61,9 +61,10 @@ public interface MessageComposer<E extends Exception> {
     void addField(String fieldname, Jsonizable obj) throws E;
     void addField(String fieldname, UUID n) throws E;
     void addField(String fieldname, ByteArray b) throws E;
-//    void addField(String fieldname, byte [] b) throws E;			// inherently mutable. Use ByteArray instead!
     void addField(String fieldname, BigInteger n) throws E;
     void addField(String fieldname, BigDecimal n) throws E;
     void addField(String fieldname, LocalDate t) throws E;
     void addField(String fieldname, LocalDateTime t) throws E;
+    @Deprecated
+    void addField(String fieldname, byte [] b) throws E;			// inherently mutable. Use ByteArray instead!
 }

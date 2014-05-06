@@ -3,6 +3,8 @@ package de.jpaw.vertx.tests;
 import org.testng.annotations.Test;
 import java.time.LocalDateTime
 import java.util.UUID
+import de.jpaw.vertx.lib.ByteArray
+import org.vertx.java.core.json.JsonObject
 
 class JsonDemo1Test {
 	
@@ -41,5 +43,25 @@ class JsonDemo1Test {
 		System.out.println('''Result of json with list and UUID is «json»!''')
 	} 
 
+
+	@Test
+	def public void testBinary1() {
+		val DATA = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."; 
+		val test1 = new JsonBinaryDemo1 => [
+			data = new ByteArray(DATA.bytes)
+		]
+		
+		val json = test1.encodeJson
+		System.out.println('''Result of json with binary data is «json»!''')
+		
+		// see the reference
+		val j = new JsonObject => [
+			putBoolean("mybool", true)
+			putBinary("mybytes", DATA.bytes)
+			putString("nothere", null)
+		]
+		System.out.println('''Result of json with binary data is «j.encode»!''')
+		
+	} 
 
 }
