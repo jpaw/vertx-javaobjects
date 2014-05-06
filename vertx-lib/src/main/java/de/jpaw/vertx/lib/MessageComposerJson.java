@@ -18,17 +18,26 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 	protected final Appendable out;
 	protected final boolean writeNulls;
 	protected final boolean fullEnumMode = false;
+	protected final JsonEscaper jsonEscaper;
 	
 	protected boolean needFieldSeparator = false;
 	
 	public MessageComposerJson(Appendable out) {
 		this.out = out;
 		this.writeNulls = false;
+		this.jsonEscaper = new DefaultJsonEscaperForAppendables(out);
 	}
 
 	public MessageComposerJson(Appendable out, boolean writeNulls) {
 		this.out = out;
 		this.writeNulls = writeNulls;
+		this.jsonEscaper = new DefaultJsonEscaperForAppendables(out);
+	}
+	
+	public MessageComposerJson(Appendable out, boolean writeNulls, JsonEscaper jsonEscaper) {
+		this.out = out;
+		this.writeNulls = writeNulls;
+		this.jsonEscaper = jsonEscaper;
 	}
 	
 	
@@ -54,17 +63,10 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 			needFieldSeparator = true;
 	}
 
-	/** Writes a quoted string. We know that we don't need escaping. */
-	protected void writeStringUnescaped(String s) throws IOException {
-		out.append('"');
-		out.append(s);
-		out.append('"');
-	}
-
 	/** Writes a quoted fieldname. We assume that no escaping is required, because all valid identifier characters in Java don't need escaping. */
 	protected void writeFieldName(String fieldname) throws IOException {
 		writeSeparator();
-		writeStringUnescaped(fieldname);
+		jsonEscaper.outputUnicodeNoControls(fieldname);
 		out.append(':');
 	}
 
@@ -92,17 +94,17 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 		}
 	}
 	
-	protected void writeOptionalQuotedString(String fieldname, String s) throws IOException {
+	protected void writeOptionalQuotedAscii(String fieldname, String s) throws IOException {
 		if (fieldname == null) {
 			// must write a null without a name
 			writeSeparator();
 			if (s == null)
 				out.append("null");
 			else
-				writeStringUnescaped(s);
+				jsonEscaper.outputAscii(s);
 		} else if (s != null) {
 			writeFieldName(fieldname);
-			writeStringUnescaped(s);
+			jsonEscaper.outputAscii(s);
 		} else if (writeNulls) {
 			writeFieldName(fieldname);
 			out.append("null");
@@ -166,7 +168,7 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 	@Override
 	public void addField(String fieldname, char c) throws IOException {
 		writeOptionalFieldName(fieldname);
-		JsonEscaper.outputEscapedString(out, String.valueOf(c));
+		jsonEscaper.outputUnicodeWithControls(String.valueOf(c));
 	}
 
 	@Override
@@ -229,10 +231,10 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 			if (s == null)
 				out.append("null");
 			else
-				JsonEscaper.outputEscapedString(out, s);
+				jsonEscaper.outputUnicodeWithControls(s);
 		} else if (s != null) {
 			writeFieldName(fieldname);
-			JsonEscaper.outputEscapedString(out, s);
+			jsonEscaper.outputUnicodeWithControls(s);
 		} else if (writeNulls) {
 			writeFieldName(fieldname);
 			out.append("null");
@@ -243,9 +245,9 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 	protected void startObject(String fieldname, Jsonizable obj) throws IOException {
 		out.append('{');
 		// create the class canonical name as a special field "@type", to be compatible to json-io
-		writeStringUnescaped("@type");
+		jsonEscaper.outputAscii("@type");
 		out.append(':');
-		writeStringUnescaped(obj.getClass().getCanonicalName());
+		jsonEscaper.outputUnicodeNoControls(obj.getClass().getCanonicalName());
 		needFieldSeparator = true;
 		obj.serializeSub(this);
 		terminateObject();
@@ -271,39 +273,39 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 
 	@Override
 	public void addField(String fieldname, UUID n) throws IOException {
-		writeOptionalQuotedString(fieldname, n == null ? null : n.toString());
+		writeOptionalQuotedAscii(fieldname, n == null ? null : n.toString());
 	}
 
 	@Override
 	public void addField(String fieldname, ByteArray b) throws IOException {
-		writeOptionalQuotedString(fieldname, b == null ? null : new String(b.getBase64asByte()));
+		writeOptionalQuotedAscii(fieldname, b == null ? null : new String(b.getBase64asByte()));
 	}
 
 	@Override
 	@Deprecated
 	public void addField(String fieldname, byte [] b) throws IOException {
 		// TODO: encode() is much faster than encodeToString(). We should switch to that, especially as we need byte [] in the end anyway.
-		writeOptionalQuotedString(fieldname, b == null ? null : Base64.getEncoder().encodeToString(b));
+		writeOptionalQuotedAscii(fieldname, b == null ? null : Base64.getEncoder().encodeToString(b));
 	}
 
 	@Override
 	public void addField(String fieldname, BigInteger n) throws IOException {
-		writeOptionalQuotedString(fieldname, n == null ? null : n.toString());
+		writeOptionalQuotedAscii(fieldname, n == null ? null : n.toString());
 	}
 
 	@Override
 	public void addField(String fieldname, BigDecimal n) throws IOException {
-		writeOptionalQuotedString(fieldname, n == null ? null : n.toString());
+		writeOptionalQuotedAscii(fieldname, n == null ? null : n.toString());
 	}
 
 	@Override
 	public void addField(String fieldname, LocalDate t) throws IOException {
-		writeOptionalQuotedString(fieldname, t == null ? null : DateTimeFormatter.ISO_LOCAL_DATE.format(t));
+		writeOptionalQuotedAscii(fieldname, t == null ? null : DateTimeFormatter.ISO_LOCAL_DATE.format(t));
 	}
 
 	@Override
 	public void addField(String fieldname, LocalDateTime t) throws IOException {
-		writeOptionalQuotedString(fieldname, t == null ? null : DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(t));
+		writeOptionalQuotedAscii(fieldname, t == null ? null : DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(t));
 	}
 
 	/** Writes information of an enum instance. In "full" mode, the class name is written as field "@enum", the token itself as field "name".
@@ -311,12 +313,12 @@ public class MessageComposerJson implements MessageComposer<IOException> {
 	protected void enumOut(Enum<?> e) throws IOException {
 		if (fullEnumMode) {
 			out.append("{\"@enum\":");
-			writeStringUnescaped(e.getClass().getCanonicalName());
+			jsonEscaper.outputUnicodeNoControls(e.getClass().getCanonicalName());
 			out.append(",\"name\":");
-			writeStringUnescaped(e.name());
+			jsonEscaper.outputUnicodeNoControls(e.name());
 			out.append('}');
 		} else {
-			writeStringUnescaped(e.name());
+			jsonEscaper.outputUnicodeNoControls(e.name());
 		}
 	}
 	
