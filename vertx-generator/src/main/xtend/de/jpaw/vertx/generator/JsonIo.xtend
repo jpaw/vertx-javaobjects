@@ -16,11 +16,11 @@ annotation JsonIo {}
 class JsonIoProcessor extends AbstractClassProcessor {
 
     override doTransform(MutableClassDeclaration cls, extension TransformationContext context) {
-        val overrideAnnotation = Override.newTypeReference.type
+        val overrideAnnotation = Override.newAnnotationReference
         val list = List.newTypeReference
         
         // erase the annotation in order to avoid a hard runtime dependency on the generator project, and therefore xtend lib / guava
-        cls.annotations.findFirst[annotationTypeDeclaration == JsonIo.newTypeReference.type].remove
+        cls.removeAnnotation(cls.annotations.findFirst[annotationTypeDeclaration == JsonIo.newTypeReference.type])
 
         // add the Jsonizable interface
         cls.implementedInterfaces = cls.implementedInterfaces + #[ Jsonizable.newTypeReference ]
@@ -39,7 +39,7 @@ class JsonIoProcessor extends AbstractClassProcessor {
             exceptions = #[ exceptionParam.newTypeReference ]
             docComment = '''Created by JsonIoProcessor'''
             body = [ '''
-                «IF cls.extendedClass != null && cls.extendedClass != Object.newTypeReference»
+                «IF cls.extendedClass !== null && cls.extendedClass != Object.newTypeReference»
                     super.serializeSub(writer);
                     writer.writeSuperclassSeparator();
                 «ENDIF»
